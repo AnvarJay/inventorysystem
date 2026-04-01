@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Inventory Dashboard</title>
+
+<style>
+
+body{
+font-family:Arial;
+margin:40px;
+}
+
+input{
+padding:8px;
+margin:5px;
+}
+
+button{
+padding:8px;
+background:green;
+color:white;
+border:none;
+cursor:pointer;
+}
+
+table{
+margin-top:20px;
+border-collapse:collapse;
+}
+
+td,th{
+border:1px solid #ccc;
+padding:8px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Product Inventory</h2>
+
+<input id="name" placeholder="Product Name">
+<input id="quantity" placeholder="Quantity">
+<input id="price" placeholder="Price">
+
+<button id="addBtn" onclick="addProduct()">Add Product</button>
+
+<h3>Products</h3>
+
+<table>
+
+<thead>
+
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Quantity</th>
+<th>Price</th>
+<th>Action</th>
+</tr>
+
+</thead>
+
+<tbody id="productTable"></tbody>
+
+</table>
+
+<script>
+
+function loadProducts(){
+
+fetch("/products")
+
+.then(res=>res.json())
+
+.then(data=>{
+
+let table="";
+
+data.forEach(p=>{
+
+table+=`
+<tr>
+<td>${p.id}</td>
+<td>${p.name}</td>
+<td>${p.quantity}</td>
+<td>${p.price}</td>
+
+<td>
+<button onclick="editProduct(${p.id},'${p.name}',${p.quantity},${p.price})">
+Edit
+</button>
+</td>
+
+</tr>
+`
+
+});
+
+document.getElementById("productTable").innerHTML=table;
+
+});
+
+}
+
+function addProduct(){
+
+let name=document.getElementById("name").value;
+let quantity=document.getElementById("quantity").value;
+let price=document.getElementById("price").value;
+
+fetch("/products",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+name:name,
+quantity:quantity,
+price:price
+})
+
+})
+.then(()=>{
+
+loadProducts();
+
+/* clear fields */
+document.getElementById("name").value="";
+document.getElementById("quantity").value="";
+document.getElementById("price").value="";
+
+});
+
+}
+
+function updateProduct(id){
+
+let name=document.getElementById("name").value;
+let quantity=document.getElementById("quantity").value;
+let price=document.getElementById("price").value;
+
+fetch("/products/"+id,{
+
+method:"PUT",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+name:name,
+quantity:quantity,
+price:price
+})
+
+})
+.then(()=>{
+
+loadProducts();
+
+/* clear fields */
+document.getElementById("name").value="";
+document.getElementById("quantity").value="";
+document.getElementById("price").value="";
+
+/* reset button */
+let btn=document.getElementById("addBtn");
+btn.innerText="Add Product";
+btn.onclick=addProduct;
+
+});
+
+}
+
+function editProduct(id,name,quantity,price){
+
+document.getElementById("name").value=name;
+document.getElementById("quantity").value=quantity;
+document.getElementById("price").value=price;
+
+let btn=document.getElementById("addBtn");
+
+btn.innerText="Update Product";
+
+btn.onclick=function(){
+updateProduct(id);
+};
+
+}
+
+loadProducts();
+
+</script>
+
+</body>
+</html>
